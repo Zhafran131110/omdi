@@ -82,24 +82,29 @@
       {
         id: "1AyngHAarfMYQduQeabpE5khaQjYjQ3oPuWhsPcyzTlw", // Sheet Olympiad
         sheet: "Data Rapi",
+        startRow: 2,
         target: "jumlah"
       },
       {
         id: "1MYTnFoJexXIjnVLM21Tca1O8Kslw-C_fShxpKQTfJfQ", // Sheet Non Olympiad
         sheet: "Form Responses 1",
+        startRow: 4,
         target: "jumlah2"
       }
     ];
 
     // Fungsi ambil data CSV dari Google Sheets publik
-    async function ambilJumlahBaris({ id, sheet, target }) {
+    async function ambilJumlahBaris({ id, sheet, startRow, target }) {
       try {
         const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("Gagal fetch");
         const csv = await res.text();
+
+        // Pisahkan baris dan hitung dari baris tertentu
         const baris = csv.trim().split("\n");
-        const jumlah = baris.length > 1 ? baris.length - 3 : 0;
+        const jumlah = baris.length > startRow ? baris.length - (startRow - 1) : 0;
+
         document.getElementById(target).textContent = jumlah;
       } catch (err) {
         document.getElementById(target).textContent = "Gagal memuat 😢";
