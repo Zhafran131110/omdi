@@ -56,6 +56,7 @@
       font-size: 28px;
       font-weight: bold;
       color: #1565c0;
+      transition: color 0.3s ease;
     }
   </style>
 </head>
@@ -77,43 +78,57 @@
   </div>
 
   <script>
-    // Konfigurasi Spreadsheet
     const dataSources = [
       {
-        id: "1AyngHAarfMYQduQeabpE5khaQjYjQ3oPuWhsPcyzTlw", // Sheet Olympiad
+        id: "1AyngHAarfMYQduQeabpE5khaQjYjQ3oPuWhsPcyzTlw", // Olympiad
         sheet: "Data Rapi",
         startRow: 2,
         target: "jumlah"
       },
       {
-        id: "1MYTnFoJexXIjnVLM21Tca1O8Kslw-C_fShxpKQTfJfQ", // Sheet Non Olympiad
+        id: "1MYTnFoJexXIjnVLM21Tca1O8Kslw-C_fShxpKQTfJfQ", // Non Olympiad
         sheet: "Form Responses 1",
-        startRow: 5,
+        startRow: 4,
         target: "jumlah2"
       }
     ];
 
-    // Fungsi ambil data CSV dari Google Sheets publik
     async function ambilJumlahBaris({ id, sheet, startRow, target }) {
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
-        const res = await fetch(url);
+        const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}&_=${Date.now()}`;
+        const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error("Gagal fetch");
         const csv = await res.text();
 
-        // Pisahkan baris dan hitung dari baris tertentu
         const baris = csv.trim().split("\n");
         const jumlah = baris.length > startRow ? baris.length - (startRow - 1) : 0;
 
-        document.getElementById(target).textContent = jumlah;
+        const elemen = document.getElementById(target);
+        const nilaiLama = elemen.textContent;
+
+        // Animasi jika berubah
+        if (nilaiLama !== jumlah.toString()) {
+          elemen.style.color = "#2e7d32";
+          elemen.textContent = jumlah;
+          setTimeout(() => (elemen.style.color = "#1565c0"), 500);
+        } else {
+          elemen.textContent = jumlah;
+        }
       } catch (err) {
         document.getElementById(target).textContent = "Gagal memuat 😢";
         console.error(`Gagal memuat data ${sheet}:`, err);
       }
     }
 
-    // Jalankan
-    dataSources.forEach(ambilJumlahBaris);
+    function perbaruiSemua() {
+      dataSources.forEach(ambilJumlahBaris);
+    }
+
+    // Jalankan pertama kali
+    perbaruiSemua();
+
+    // Perbarui otomatis setiap 30 detik
+    setInterval(perbaruiSemua, 5000);
   </script>
 </body>
 </html>
